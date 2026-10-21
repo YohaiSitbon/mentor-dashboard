@@ -126,7 +126,15 @@ footer{max-width:1240px;margin:auto;padding:0 18px 40px;color:var(--mut);font-si
 .muted{color:var(--mut)}
 .big{font-size:18px;font-weight:700}
 @media(max-width:620px){header.top{position:static}.rules-sticky{position:static}}
+.hchart{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:10px;min-height:120px}
+.hchart svg{display:block;width:100%;height:auto}
+.hchart .empty{color:var(--mut);font-size:13px;text-align:center;padding:40px 10px}
+.hleg{display:flex;gap:16px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--mut);margin-top:8px}
+.hleg i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-inline-end:6px;vertical-align:middle}
+.hleg .btn{margin-inline-start:auto}
+.krow{display:flex;gap:8px;max-width:340px}.krow input{direction:ltr;text-align:center;letter-spacing:4px}
 @media print{
+  .hchart{background:#fff!important;border-color:#bbb!important}
   body{background:#fff;color:#111;font-size:11.5px}
   header.top,nav.sec,.top-actions,.btn,.rowdel,.toast,.noprint{display:none!important}
   section.card,.kpi,.rule,.enemy,.note{background:#fff!important;border-color:#bbb!important;box-shadow:none!important;color:#111!important;break-inside:avoid}
@@ -153,6 +161,8 @@ html:not(.locked) #gate{display:none!important}
 @media print{#gate{display:none!important}}
 </style>
 <script>
+/* ===== חיבור לגיליון גוגל: להדביק כאן את כתובת ה־/exec של ה־Web App אחרי הפריסה ===== */
+const SHEET_ENDPOINT = '';
 /* gate: hidden until unlocked */
 window.MENTOR_GATE={salt:"e4013d6e83357a602fd6b25889db7829",iter:300000,hash:"f5e1560dbf499142cd81b616931ef26d78eb591a44ff57d147b29540639d2b42",key:"mentor_gate"};
 (function(){var ok=false;try{ok=localStorage.getItem(MENTOR_GATE.key)===MENTOR_GATE.hash;}catch(e){}if(!ok)document.documentElement.classList.add("locked");})();
@@ -175,38 +185,42 @@ window.MENTOR_GATE={salt:"e4013d6e83357a602fd6b25889db7829",iter:300000,hash:"f5
   function hexToBytes(x){var a=new Uint8Array(x.length/2);for(var i=0;i<a.length;i++)a[i]=parseInt(x.substr(i*2,2),16);return a;}
   function toHex(b){return Array.prototype.map.call(new Uint8Array(b),function(v){return v.toString(16).padStart(2,"0");}).join("");}
   async function derive(p){var k=await crypto.subtle.importKey("raw",new TextEncoder().encode(p),"PBKDF2",false,["deriveBits"]);return toHex(await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:hexToBytes(G.salt),iterations:G.iter},k,256));}
+  window.mentorDerive=derive;
   if(document.documentElement.classList.contains("locked"))setTimeout(function(){pw.focus();},50);
   f.addEventListener("submit",async function(e){
     e.preventDefault();var v=pw.value;if(!v)return;btn.disabled=true;err.textContent="";
     var h="";try{if(!window.crypto||!crypto.subtle)throw new Error("no webcrypto");h=await derive(v);}catch(x){err.textContent="הדפדפן לא תומך באימות (נדרש HTTPS)";btn.disabled=false;return;}
     btn.disabled=false;
-    if(h===G.hash){try{localStorage.setItem(G.key,h);}catch(x){}pw.value="";document.documentElement.classList.remove("locked");window.scrollTo(0,0);}
+    if(h===G.hash){try{localStorage.setItem(G.key,h);localStorage.setItem("mentor_key",v);}catch(x){}pw.value="";v="";document.documentElement.classList.remove("locked");window.scrollTo(0,0);window.dispatchEvent(new Event("mentor-unlocked"));}
     else{err.textContent="סיסמה שגויה";pw.value="";pw.focus();}
   });
 })();
 </script>
 <header class="top">
   <div class="top-in">
-    <div class="brand">תיק מנטור — 80/20 · Max Q<small>יוחאי סיטבון · ניהול לפי שיטת המנטור · נשמר מקומית בדפדפן</small></div>
+    <div class="brand">תיק מנטור — 80/20 · Max Q<small>יוחאי סיטבון · ניהול לפי שיטת המנטור · נשמר בדפדפן ובגיליון גוגל</small></div>
     <div class="top-actions">
       <span class="saved" id="savedAt"></span>
       <button class="btn" id="btnExport">⬇ ייצוא <bdi class="t">JSON</bdi></button>
       <button class="btn" id="btnImport">⬆ ייבוא <bdi class="t">JSON</bdi></button>
       <input type="file" id="fileImport" accept="application/json,.json" hidden>
+      <button class="btn" id="btnSheetSave" title="צילום מצב: שורה חדשה בגיליון + גיבוי מלא">☁ שמירה לגיליון</button>
+      <button class="btn" id="btnSheetLoad" title="שחזור המצב האחרון מהגיליון">☁ טעינה מהגיליון</button>
       <button class="btn" onclick="window.print()">🖨 הדפסה</button>
       <button class="btn ghost danger" id="btnReset">איפוס</button>
-      <button class="btn ghost" id="btnLock" onclick="try{localStorage.removeItem('mentor_gate')}catch(e){}location.reload()" title="נעילת הדשבורד במכשיר הזה">🔒 נעילה</button>
+      <button class="btn ghost" id="btnLock" onclick="try{localStorage.removeItem('mentor_gate');localStorage.removeItem('mentor_key')}catch(e){}location.reload()" title="נעילת הדשבורד במכשיר הזה">🔒 נעילה</button>
     </div>
   </div>
   <nav class="sec">
     <a href="#s1">מיפוי עצמי</a><a href="#s2">Max Q</a><a href="#s3">אלוקציה 80/20</a><a href="#s4">אחזקות</a>
-    <a href="#s5">כללי ברזל</a><a href="#s6">שיפטינג</a><a href="#s7">פרנסה מהתיק</a><a href="#s8">שלושת האויבים</a>
+    <a href="#s5">כללי ברזל</a><a href="#s6">שיפטינג</a><a href="#s7">פרנסה מהתיק</a><a href="#s8">שלושת האויבים</a><a href="#s9">מעקב לאורך זמן</a>
   </nav>
 </header>
 
 <main>
 
-<div class="note calm">‏הכל כאן ניתן לעריכה ונשמר אוטומטית בדפדפן הזה בלבד. אין שרת, אין שליחה החוצה. הסכומים מתחילים באפס בכוונה: ממלאים מספרים אמיתיים בשקלים, והחישובים מתעדכנים מעצמם. כלי חינוכי לניהול עצמי, לא ייעוץ השקעות או מס.</div>
+<div class="note gold noprint" id="snapBanner" hidden>‏📸 הגיע זמן לצילום חודשי — <button class="btn pri" id="btnBannerSnap" style="margin-inline-start:8px">שמירה לגיליון</button></div>
+<div class="note calm">‏הכל כאן ניתן לעריכה ונשמר אוטומטית בדפדפן הזה, ואחרי הפעלת החיבור גם בגיליון הגוגל הפרטי שלך (מצב עדכני כל כמה דקות, וצילום מצב בלחיצה על ״שמירה לגיליון״). הסכומים מתחילים באפס בכוונה: ממלאים מספרים אמיתיים בשקלים, והחישובים מתעדכנים מעצמם. כלי חינוכי לניהול עצמי, לא ייעוץ השקעות או מס.</div>
 
 <!-- 1 -->
 <section class="card" id="s1">
@@ -403,8 +417,25 @@ window.MENTOR_GATE={salt:"e4013d6e83357a602fd6b25889db7829",iter:300000,hash:"f5
   </div>
 </section>
 
+<!-- 9 -->
+<section class="card" id="s9">
+  <h2><span class="num">9</span>מעקב לאורך זמן</h2>
+  <p class="sub">‏כל ״שמירה לגיליון״ מוסיפה שורה בלשונית <bdi>סנפשוטים</bdi>. הגרף מציג את שווי התיק ואת ההתקדמות ל־<bdi class="t">Max Q</bdi> לאורך השנים.</p>
+  <div class="hchart" id="histChart"></div>
+  <div class="hleg"><span><i style="background:#5eead4"></i>סה״כ תיק ₪</span><span><i style="background:#f5c451"></i>התקדמות <bdi class="t">Max Q</bdi> %</span><button class="btn ghost noprint" id="btnHistReload">↻ רענון</button></div>
+  <h3 class="noprint">חיבור לגיליון</h3>
+  <div class="note noprint" id="syncBox">
+    <div>מצב: <span id="syncStatus">—</span></div>
+    <div id="keyRow" hidden style="margin-top:10px">
+      <div style="margin-bottom:6px">‏במכשיר הזה עוד לא שמורה סיסמת הסנכרון. זו אותה סיסמה של מסך הכניסה.</div>
+      <div class="krow"><input id="syncKey" type="password" inputmode="numeric" autocomplete="off" aria-label="סיסמת סנכרון"><button class="btn pri" id="btnSyncKey">שמירה</button></div>
+      <div id="syncKeyErr" style="color:var(--bad);min-height:18px;margin-top:4px"></div>
+    </div>
+  </div>
+</section>
+
 </main>
-<footer>‏תיק מנטור · כלי אישי לניהול לפי שיטה. לא ייעוץ השקעות, לא ייעוץ מס. אין להשתמש בכסף מהלוואות להשקעה. הנתונים נשמרים רק בדפדפן הזה — מומלץ לייצא <bdi class="t">JSON</bdi> לגיבוי.</footer>
+<footer>‏תיק מנטור · כלי אישי לניהול לפי שיטה. לא ייעוץ השקעות, לא ייעוץ מס. אין להשתמש בכסף מהלוואות להשקעה. הנתונים נשמרים בדפדפן ובגיליון גוגל הפרטי — ייצוא <bdi class="t">JSON</bdi> נשאר גיבוי נוסף.</footer>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -443,6 +474,7 @@ function defaults(){return{
  savedAt:null
 };}
 
+const HAD_LOCAL=(()=>{try{return localStorage.getItem(KEY)!==null}catch(e){return false}})();
 let S=load();
 function load(){
   try{const raw=localStorage.getItem(KEY);if(raw){return merge(defaults(),JSON.parse(raw));}}catch(e){}
@@ -456,7 +488,7 @@ function merge(base,o){
 let saveT;
 function save(){
   clearTimeout(saveT);
-  saveT=setTimeout(()=>{S.savedAt=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}showSaved();},250);
+  saveT=setTimeout(()=>{S.savedAt=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}showSaved();cloudDirty();},250);
 }
 function showSaved(){if(S.savedAt){const d=new Date(S.savedAt);$("#savedAt").textContent="נשמר "+d.toLocaleString("he-IL",{dateStyle:"short",timeStyle:"short"});}}
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -672,6 +704,135 @@ $("#btnExport").onclick=()=>{const blob=new Blob([JSON.stringify(S,null,2)],{typ
 $("#btnImport").onclick=()=>$("#fileImport").click();
 $("#fileImport").onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{S=merge(defaults(),JSON.parse(rd.result));init();save();toast("הנתונים יובאו");}catch(err){alert("קובץ JSON לא תקין");}};rd.readAsText(f);e.target.value="";};
 $("#btnReset").onclick=()=>{if(confirm("לאפס את כל הנתונים לברירת המחדל? מומלץ לייצא קודם.")){localStorage.removeItem(KEY);S=defaults();init();toast("אופס");}};
+
+/* ===== Google Sheet sync ===== */
+const EP=(typeof SHEET_ENDPOINT==="string"?SHEET_ENDPOINT:"").trim();
+const SK="mentor_key",LS_SNAP="mentor_lastSnap",LS_PUSH="mentor_lastPush",LS_HIST="mentor_hist",LS_ASKED="mentor_key_asked";
+const NOT_ON="החיבור לגיליון עוד לא הופעל";
+const MIN_GAP=120000;
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+const getKey=()=>lsGet(SK)||"";
+const unlocked=()=>!document.documentElement.classList.contains("locked");
+const hm=()=>new Date().toLocaleTimeString("he-IL",{hour:"2-digit",minute:"2-digit"});
+const fmtDT=s=>{const d=new Date(s);return isNaN(d)?String(s||""):d.toLocaleString("he-IL",{dateStyle:"short",timeStyle:"short"})};
+function setSync(t){const e=$("#syncStatus");if(e)e.textContent=t;}
+async function api(method,params,opt){
+  if(!EP)throw new Error("noep");const key=getKey();if(!key)throw new Error("nokey");
+  let res;
+  if(method==="GET"){const q=new URLSearchParams({...params,key});res=await fetch(EP+(EP.includes("?")?"&":"?")+q.toString(),{method:"GET",redirect:"follow",cache:"no-store"});}
+  else{const body=JSON.stringify({...params,key});res=await fetch(EP,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body,redirect:"follow",keepalive:!!(opt&&opt.keepalive)&&body.length<60000});}
+  let j;try{j=await res.json();}catch(e){throw new Error("bad response "+res.status);}
+  if(!j||!j.ok)throw new Error(j&&j.error||"error");
+  return j;
+}
+function errMsg(e){const m=String(e&&e.message||e);
+  if(m==="noep")return NOT_ON;
+  if(m==="nokey")return"חסרה סיסמת סנכרון במכשיר הזה";
+  if(m==="unauthorized")return"הגיליון דחה את סיסמת הסנכרון";
+  return"שגיאת חיבור לגיליון ("+m+")";}
+function metrics(){
+  const P=S.profile,T=total(),cur=T>0?T:num(P.capital);
+  const r=num(P.ret)/100,target=num(P.maxq),req=r>0?target/r:0;
+  const prog=req>0?Math.min(100,cur/req*100):0;
+  let v80=0,v20=0,vG=0;S.holdings.forEach(h=>{const a=num(h.amt);if(isGold(h))vG+=a;else if(h.b==="20")v20+=a;else v80+=a;});
+  const tt=v80+v20+vG,r2=x=>Math.round(x*100)/100;
+  const holdings={};S.holdings.forEach(h=>{const k=String(h.tk||h.nm||"").trim();if(k)holdings[k]=(holdings[k]||0)+num(h.amt);});
+  return{total:Math.round(cur),liquid:num(S.cash.liquid),surplus:num(P.surplus),maxq:target,progress:r2(prog),
+    p80:r2(tt?v80/tt*100:0),p20:r2(tt?v20/tt*100:0),gold:r2(tt?vG/tt*100:0),holdings};
+}
+function needKey(){if(!EP){toast(NOT_ON);return true;}if(!getKey()){askKey(true);toast("קודם להזין סיסמת סנכרון");return true;}return false;}
+async function doSnapshot(){
+  if(needKey())return;
+  const notes=prompt("הערה לצילום המצב (לא חובה):","");if(notes===null)return;
+  const b=$("#btnSheetSave");b.disabled=true;setSync("שומר צילום מצב…");
+  try{const m=metrics();const j=await api("POST",{action:"snapshot",metrics:m,holdings:m.holdings,notes,state:S});
+    dirty=false;lsSet(LS_PUSH,String(Date.now()));lsSet(LS_SNAP,j.date||new Date().toISOString());
+    toast("נשמר לגיליון ✓ "+hm());setSync("צילום מצב נשמר "+hm());banner();loadHistory();}
+  catch(e){toast(errMsg(e));setSync(errMsg(e));}
+  finally{b.disabled=false;}
+}
+function applyState(st){S=merge(defaults(),st);lsSet(KEY,JSON.stringify(S));init();}
+async function doLoad(auto){
+  if(auto){if(!EP||!getKey())return;}else if(needKey())return;
+  try{const j=await api("GET",{action:"latest"});
+    if(!j.state){if(!auto)toast("אין עדיין נתונים בגיליון");return;}
+    const when=j.savedAt?fmtDT(j.savedAt):"";
+    if(auto){if(lsGet(KEY)!==null)return;}
+    else if(!confirm("לטעון מהגיליון את המצב מ־"+when+"?\nזה יחליף את הנתונים בדפדפן הזה."))return;
+    applyState(j.state);toast("נטען מהגיליון ✓ "+when);setSync("נטען מהגיליון ("+when+")");}
+  catch(e){if(!auto)toast(errMsg(e));setSync(errMsg(e));}
+}
+/* auto-save of full state (overwrites מצב עדכני only), at most every 2 minutes */
+let cloudT=null,dirty=false;
+function cloudDirty(){
+  if(!EP||!getKey()||!unlocked())return;
+  dirty=true;if(cloudT)return;
+  const last=num(lsGet(LS_PUSH));const wait=Math.max(8000,last+MIN_GAP-Date.now());
+  cloudT=setTimeout(()=>pushState(false),wait);setSync("שינויים ממתינים לסנכרון");
+}
+async function pushState(keepalive){
+  clearTimeout(cloudT);cloudT=null;if(!dirty)return;dirty=false;lsSet(LS_PUSH,String(Date.now()));
+  try{await api("POST",{action:"state",state:S},{keepalive});setSync("סונכרן לגיליון "+hm());}
+  catch(e){dirty=true;setSync(errMsg(e)+" — ננסה שוב");if(!keepalive)cloudDirty();}
+}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&dirty&&EP&&getKey())pushState(true);});
+/* history + chart */
+let HIST=[];try{HIST=JSON.parse(lsGet(LS_HIST)||"[]")||[];}catch(e){HIST=[];}
+async function loadHistory(){
+  if(!EP||!getKey()){renderChart();return;}
+  try{const j=await api("GET",{action:"history"});HIST=Array.isArray(j.rows)?j.rows:[];lsSet(LS_HIST,JSON.stringify(HIST.map(r=>({date:r.date,total:r.total,progress:r.progress}))));
+    if(HIST.length)lsSet(LS_SNAP,HIST[HIST.length-1].date);}
+  catch(e){setSync(errMsg(e));}
+  renderChart();banner();
+}
+function renderChart(){
+  const box=$("#histChart");if(!box)return;
+  const pts=HIST.map(r=>({t:Date.parse(r.date),v:num(r.total),p:num(r.progress),d:r.date})).filter(x=>isFinite(x.t)).sort((a,b)=>a.t-b.t);
+  if(!pts.length){box.innerHTML='<div class="empty">'+(EP?"עוד אין צילומי מצב. לחיצה על ״שמירה לגיליון״ יוצרת את הנקודה הראשונה.":NOT_ON+" — אחרי ההפעלה יופיע כאן גרף ההתקדמות.")+'</div>';return;}
+  const W=640,H=260,L=64,R=44,T=16,B=34,iw=W-L-R,ih=H-T-B;
+  const t0=pts[0].t,t1=pts[pts.length-1].t,span=t1-t0||1;
+  const vmax=Math.max(1,...pts.map(x=>x.v))*1.1;
+  const X=t=>pts.length===1?L+iw/2:L+(t-t0)/span*iw,Y1=v=>T+ih-v/vmax*ih,Y2=p=>T+ih-Math.min(100,p)/100*ih;
+  const kfmt=v=>v>=1e6?(v/1e6).toFixed(v>=1e7?0:1)+"M":v>=1e3?Math.round(v/1e3)+"K":String(Math.round(v));
+  const dfmt=t=>{const d=new Date(t);return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+String(d.getFullYear()).slice(2)};
+  let s=`<svg viewBox="0 0 ${W} ${H}" direction="ltr" font-family="Heebo,sans-serif" font-size="11" role="img" aria-label="גרף שווי תיק והתקדמות Max Q">`;
+  for(let i=0;i<=4;i++){const y=T+ih*i/4;s+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="#26314a" stroke-width="1"/>`;
+    s+=`<text x="${L-8}" y="${y+4}" text-anchor="end" fill="#5eead4">₪${kfmt(vmax*(1-i/4))}</text><text x="${W-R+8}" y="${y+4}" fill="#f5c451">${100-i*25}%</text>`;}
+  const idx=pts.length<=3?pts.map((_,i)=>i):[0,Math.floor((pts.length-1)/2),pts.length-1];
+  [...new Set(idx)].forEach(i=>{s+=`<text x="${X(pts[i].t)}" y="${H-10}" text-anchor="middle" fill="#8f9bb3">${dfmt(pts[i].t)}</text>`;});
+  const line=(f,c,dash)=>pts.length>1?`<polyline fill="none" stroke="${c}" stroke-width="2.5" stroke-linejoin="round" ${dash?'stroke-dasharray="6 4"':""} points="${pts.map(x=>X(x.t).toFixed(1)+","+f(x).toFixed(1)).join(" ")}"/>`:"";
+  if(pts.length>1)s+=`<polygon fill="rgba(94,234,212,.08)" points="${X(t0)},${T+ih} ${pts.map(x=>X(x.t).toFixed(1)+","+Y1(x.v).toFixed(1)).join(" ")} ${X(t1)},${T+ih}"/>`;
+  s+=line(x=>Y1(x.v),"#5eead4",false)+line(x=>Y2(x.p),"#f5c451",true);
+  pts.forEach(x=>{s+=`<circle cx="${X(x.t)}" cy="${Y1(x.v)}" r="3.5" fill="#5eead4"><title>${esc(fmtDT(x.d))} · ₪${Math.round(x.v).toLocaleString("he-IL")}</title></circle><circle cx="${X(x.t)}" cy="${Y2(x.p)}" r="3" fill="#f5c451"><title>${esc(fmtDT(x.d))} · ${x.p.toFixed(1)}%</title></circle>`;});
+  box.innerHTML=s+"</svg>";
+}
+function banner(){
+  const b=$("#snapBanner");if(!b)return;
+  if(!EP||!unlocked()){b.hidden=true;return;}
+  const last=Date.parse(lsGet(LS_SNAP)||"");b.hidden=isFinite(last)&&Date.now()-last<30*864e5;
+}
+function askKey(focus){const r=$("#keyRow");if(!r)return;r.hidden=false;if(focus){$("#s9").scrollIntoView({behavior:"smooth",block:"start"});setTimeout(()=>$("#syncKey").focus(),400);}}
+async function saveKey(){
+  const inp=$("#syncKey"),err=$("#syncKeyErr");let v=inp.value;if(!v)return;err.textContent="";
+  try{const h=window.mentorDerive?await window.mentorDerive(v):"";
+    if(h!==(window.MENTOR_GATE&&window.MENTOR_GATE.hash)){err.textContent="סיסמה שגויה";inp.value="";return;}}
+  catch(e){err.textContent="הדפדפן לא תומך באימות";return;}
+  lsSet(SK,v);v="";inp.value="";$("#keyRow").hidden=true;toast("סיסמת הסנכרון נשמרה במכשיר הזה");startSync();
+}
+function startSync(){
+  if(!EP){setSync(NOT_ON);renderChart();banner();return;}
+  if(!getKey()){setSync("ממתין לסיסמת סנכרון");if(!lsGet(LS_ASKED)){lsSet(LS_ASKED,"1");askKey(true);}else askKey(false);renderChart();return;}
+  setSync("מחובר לגיליון");
+  if(!HAD_LOCAL)doLoad(true);
+  loadHistory();
+}
+$("#btnSheetSave").onclick=doSnapshot;$("#btnBannerSnap").onclick=doSnapshot;
+$("#btnSheetLoad").onclick=()=>doLoad(false);
+$("#btnHistReload").onclick=()=>{if(!EP){toast(NOT_ON);return;}if(needKey())return;loadHistory();};
+$("#btnSyncKey").onclick=saveKey;$("#syncKey").addEventListener("keydown",e=>{if(e.key==="Enter")saveKey();});
+renderChart();
+if(unlocked())startSync();else window.addEventListener("mentor-unlocked",startSync,{once:true});
 
 function init(){bindFields();renderHoldings();fillShiftSelects();renderRules();renderEnemies();renderShiftLog();recalc();showSaved();}
 init();
