@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>תיק מנטור — 80/20 · Max Q</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0f17;--bg2:#111827;--card:#151c2b;--card2:#1b2436;--line:#26314a;
+  --txt:#e7ecf5;--mut:#8f9bb3;--acc:#5eead4;--acc2:#818cf8;--gold:#f5c451;
+  --ok:#34d399;--warn:#fbbf24;--bad:#f87171;--r:16px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(1200px 600px at 100% -10%,#1a2340 0%,transparent 60%),radial-gradient(900px 500px at -10% 110%,#10263a 0%,transparent 60%),var(--bg);
+  color:var(--txt);font-family:"Heebo",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;font-size:15px;line-height:1.55;min-height:100vh}
+.ltr,bdi.t{direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+a{color:var(--acc)}
+header.top{position:sticky;top:0;z-index:20;background:rgba(11,15,23,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1240px;margin:auto;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:20px;letter-spacing:.2px}
+.brand small{display:block;font-weight:400;font-size:12px;color:var(--mut)}
+.top-actions{margin-inline-start:auto;display:flex;gap:8px;flex-wrap:wrap}
+nav.sec{max-width:1240px;margin:auto;padding:0 18px 10px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+nav.sec a{white-space:nowrap;text-decoration:none;color:var(--mut);font-size:13px;padding:5px 11px;border:1px solid var(--line);border-radius:999px}
+nav.sec a:hover{color:var(--txt);border-color:var(--acc)}
+main{max-width:1240px;margin:auto;padding:22px 18px 80px;display:grid;gap:20px}
+main>*,.grid2>*,.grid3>*,.gauge-wrap>*,.alloc>*{min-width:0}
+body{overflow-x:hidden}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+section.card{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:var(--r);padding:20px 20px 22px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+h2{margin:0 0 4px;font-size:19px;display:flex;align-items:center;gap:10px}
+h2 .num{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--acc2),var(--acc));color:#0b0f17;font-size:14px;font-weight:800}
+.sub{color:var(--mut);font-size:13px;margin:0 0 16px}
+h3{font-size:15px;margin:14px 0 8px}
+.btn{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:7px 13px;font:inherit;font-size:13px;cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--acc)}
+.btn.pri{background:linear-gradient(135deg,var(--acc2),var(--acc));color:#0b0f17;border:0;font-weight:700}
+.btn.ghost{background:transparent}
+.btn.danger:hover{border-color:var(--bad);color:var(--bad)}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--mut)}
+input,select,textarea{background:#0d1320;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;font-size:14px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(94,234,212,.12)}
+input[type=number]{direction:ltr;text-align:right}
+textarea{min-height:64px;resize:vertical}
+.kpi{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px}
+.kpi .l{font-size:12px;color:var(--mut)}
+.kpi .v{font-size:22px;font-weight:800;margin-top:2px}
+.kpi .h{font-size:11.5px;color:var(--mut);margin-top:2px}
+.kpi.good .v{color:var(--ok)}.kpi.warnk .v{color:var(--warn)}.kpi.badk .v{color:var(--bad)}.kpi.lock .v{color:var(--mut)}
+.pill{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--mut)}
+.pill.ok{color:var(--ok);border-color:rgba(52,211,153,.4)}.pill.warn{color:var(--warn);border-color:rgba(251,191,36,.4)}.pill.bad{color:var(--bad);border-color:rgba(248,113,113,.4)}
+.note{background:rgba(129,140,248,.08);border:1px solid rgba(129,140,248,.25);border-radius:12px;padding:10px 13px;font-size:13px;color:#c9cff0}
+.note.gold{background:rgba(245,196,81,.07);border-color:rgba(245,196,81,.3);color:#f1e2b5}
+.note.calm{background:rgba(94,234,212,.06);border-color:rgba(94,234,212,.25);color:#c6efe8}
+.note.caution{background:rgba(251,191,36,.07);border-color:rgba(251,191,36,.3);color:#f3e2b0}
+/* gauge */
+.gauge-wrap{display:grid;grid-template-columns:300px 1fr;gap:22px;align-items:center}
+@media(max-width:760px){.gauge-wrap{grid-template-columns:1fr}}
+.gauge{position:relative;width:100%;max-width:300px;margin:auto}
+.gauge .center{position:absolute;inset:auto 0 8% 0;text-align:center}
+.gauge .pct{font-size:40px;font-weight:800;line-height:1}
+.gauge .cap{font-size:12px;color:var(--mut)}
+.bar{height:12px;border-radius:999px;background:#0d1320;border:1px solid var(--line);overflow:hidden;display:flex}
+.bar>span{display:block;height:100%}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--mut);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:middle}
+.alloc{display:grid;grid-template-columns:220px 1fr;gap:22px;align-items:center}
+@media(max-width:760px){.alloc{grid-template-columns:1fr}}
+/* table */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:1080px;font-size:13px}
+th,td{padding:8px 7px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle}
+th{background:#101727;color:var(--mut);font-weight:500;font-size:12px;position:sticky;top:0}
+td input,td select{padding:6px 7px;font-size:13px}
+td input.tk{direction:ltr;text-align:left;font-weight:700;width:90px}
+td select.sc{width:60px;min-width:60px}
+td .score{font-weight:800;font-size:15px}
+.act{font-weight:700;font-size:12px;padding:3px 9px;border-radius:8px;white-space:nowrap;display:inline-block}
+.act.Hold{background:rgba(143,155,179,.15);color:#c3cbe0}
+.act.Shift{background:rgba(251,191,36,.15);color:var(--warn)}
+.act.DD{background:rgba(52,211,153,.15);color:var(--ok)}
+.act.M20{background:rgba(129,140,248,.18);color:#b3bafc}
+.act.M80{background:rgba(94,234,212,.15);color:var(--acc)}
+.rowdel{background:none;border:0;color:var(--mut);cursor:pointer;font-size:16px}
+.rowdel:hover{color:var(--bad)}
+/* rules */
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.rule{position:relative;background:linear-gradient(160deg,#1d2740,#151c2b);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;cursor:pointer;user-select:none;transition:.2s}
+.rule:hover{transform:translateY(-2px)}
+.rule .ic{font-size:20px}
+.rule b{display:block;margin:6px 0 3px;font-size:14.5px}
+.rule p{margin:0;font-size:12.5px;color:var(--mut)}
+.rule .chk{position:absolute;top:12px;left:12px;width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);display:grid;place-items:center;font-size:13px;color:#0b0f17}
+.rule.on{border-color:rgba(52,211,153,.5)}
+.rule.on .chk{background:var(--ok);border-color:var(--ok)}
+.rules-sticky{position:sticky;top:110px}
+/* tabs */
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:14px;flex-wrap:wrap}
+.tab{background:none;border:0;color:var(--mut);font:inherit;padding:8px 12px;cursor:pointer;border-bottom:2px solid transparent;font-size:14px}
+.tab.on{color:var(--txt);border-color:var(--acc)}
+.tabp{display:none}.tabp.on{display:block}
+/* enemies */
+.enemies{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:620px){.enemies{grid-template-columns:1fr}}
+.enemy{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+.enemy .nm{font-weight:700;font-size:15px}
+.enemy .st{display:flex;gap:6px;justify-content:center;margin-top:10px}
+.enemy .st button{flex:1;font-size:12px}
+.enemy .st button.sel.ok{background:rgba(52,211,153,.18);border-color:var(--ok);color:var(--ok)}
+.enemy .st button.sel.warn{background:rgba(251,191,36,.15);border-color:var(--warn);color:var(--warn)}
+.enemy .st button.sel.bad{background:rgba(248,113,113,.15);border-color:var(--bad);color:var(--bad)}
+.log{font-size:12.5px;color:var(--mut);max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.log div{padding:6px 10px;border-bottom:1px solid var(--line);display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card2);border:1px solid var(--acc);padding:9px 16px;border-radius:12px;font-size:13px;transition:.3s;z-index:50}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.saved{font-size:11.5px;color:var(--mut)}
+footer{max-width:1240px;margin:auto;padding:0 18px 40px;color:var(--mut);font-size:12px}
+.flex{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.right{margin-inline-start:auto}
+.muted{color:var(--mut)}
+.big{font-size:18px;font-weight:700}
+@media(max-width:620px){header.top{position:static}.rules-sticky{position:static}}
+@media print{
+  body{background:#fff;color:#111;font-size:11.5px}
+  header.top,nav.sec,.top-actions,.btn,.rowdel,.toast,.noprint{display:none!important}
+  section.card,.kpi,.rule,.enemy,.note{background:#fff!important;border-color:#bbb!important;box-shadow:none!important;color:#111!important;break-inside:avoid}
+  input,select,textarea{background:#fff;color:#111;border:1px solid #ccc}
+  .rules-sticky{position:static}
+  .muted,.sub,.kpi .l,.kpi .h,th{color:#444!important}
+  main{padding:0}
+  table{min-width:0}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand">תיק מנטור — 80/20 · Max Q<small>יוחאי סיטבון · ניהול לפי שיטת המנטור · נשמר מקומית בדפדפן</small></div>
+    <div class="top-actions">
+      <span class="saved" id="savedAt"></span>
+      <button class="btn" id="btnExport">⬇ ייצוא <bdi class="t">JSON</bdi></button>
+      <button class="btn" id="btnImport">⬆ ייבוא <bdi class="t">JSON</bdi></button>
+      <input type="file" id="fileImport" accept="application/json,.json" hidden>
+      <button class="btn" onclick="window.print()">🖨 הדפסה</button>
+      <button class="btn ghost danger" id="btnReset">איפוס</button>
+    </div>
+  </div>
+  <nav class="sec">
+    <a href="#s1">מיפוי עצמי</a><a href="#s2">Max Q</a><a href="#s3">אלוקציה 80/20</a><a href="#s4">אחזקות</a>
+    <a href="#s5">כללי ברזל</a><a href="#s6">שיפטינג</a><a href="#s7">פרנסה מהתיק</a><a href="#s8">שלושת האויבים</a>
+  </nav>
+</header>
+
+<main>
+
+<div class="note calm">‏הכל כאן ניתן לעריכה ונשמר אוטומטית בדפדפן הזה בלבד. אין שרת, אין שליחה החוצה. הסכומים מתחילים באפס בכוונה: ממלאים מספרים אמיתיים בשקלים, והחישובים מתעדכנים מעצמם. כלי חינוכי לניהול עצמי, לא ייעוץ השקעות או מס.</div>
+
+<!-- 1 -->
+<section class="card" id="s1">
+  <h2><span class="num">1</span>מיפוי עצמי</h2>
+  <p class="sub">‏מאיפה מתחילים, כמה נכנס כל חודש, ומה היעד. קודם משפחה, אחר כך התחייבויות, ורק העודף לתיק.</p>
+  <div class="fields">
+    <label class="f">הון נוכחי בתיק (₪)<input type="number" data-k="profile.capital" min="0" step="1000"></label>
+    <label class="f">עודף חודשי לתיק (₪)<input type="number" data-k="profile.surplus" min="0" step="100"></label>
+    <label class="f"><span>יעד <bdi class="t">Max Q</bdi> — רווח שנתי מהתיק שמכסה מחיה (₪)</span><input type="number" data-k="profile.maxq" min="0" step="1000"></label>
+    <label class="f">תשואה שנתית משוערת לתכנון (%)<input type="number" data-k="profile.ret" min="0" max="100" step="0.5"></label>
+    <label class="f">גיל<input type="number" data-k="profile.age" min="0" step="1"></label>
+    <label class="f">שנים לתיקון טעויות (אופק)<input type="number" data-k="profile.years" min="0" step="1"></label>
+  </div>
+  <h3>תזרים לפני התיק — סדר עדיפויות</h3>
+  <div class="fields">
+    <label class="f">מזומן נזיל כולל (₪)<input type="number" data-k="cash.liquid" min="0" step="1000"></label>
+    <label class="f">הוצאות משפחה חודשיות (₪)<input type="number" data-k="cash.monthly" min="0" step="500"></label>
+    <label class="f">חודשי ביטחון למשפחה (רנווי)<input type="number" data-k="cash.runway" min="0" step="1"></label>
+    <label class="f"><span>התחייבויות החזר ללקוחות <bdi class="t">HoneyBali</bdi> (₪)</span><input type="number" data-k="cash.obligations" min="0" step="500"></label>
+    <label class="f"><span>הלוואת קרן השתלמות פניקס — חסום (₪)</span><input type="number" data-k="cash.phoenix" min="0" step="1000"></label>
+  </div>
+  <div class="grid3" style="margin-top:14px">
+    <div class="kpi" id="kRunway"><div class="l">שמורת משפחה נדרשת</div><div class="v ltr">₪0</div><div class="h">הוצאות × חודשי ביטחון</div></div>
+    <div class="kpi" id="kInvest"><div class="l">פנוי להשקעה אחרי התחייבויות</div><div class="v ltr">₪0</div><div class="h">נזיל פחות שמורת משפחה פחות <bdi class="t">HoneyBali</bdi></div></div>
+    <div class="kpi lock" id="kLocked"><div class="l">🔒 הון חסום — לא להשקעה</div><div class="v ltr">₪0</div><div class="h">הלוואת פניקס מיועדת להתחייבויות <bdi class="t">HoneyBali</bdi> בלבד</div></div>
+  </div>
+  <h3>משפחה ועסק</h3>
+  <div class="grid2">
+    <label class="f">משפחה<textarea data-k="profile.family"></textarea></label>
+    <label class="f">עסקים ומקורות הכנסה<textarea data-k="profile.biz"></textarea></label>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="card" id="s2">
+  <h2><span class="num">2</span>התקדמות ל־<bdi class="t">Max Q</bdi></h2>
+  <p class="sub">‏<bdi class="t">Max Q</bdi> = הנקודה שבה הרווח השנתי של התיק מכסה את המחיה. עד אז: חיים מתחת לאמצעים, והעבודה מממנת את התיק.</p>
+  <div class="gauge-wrap">
+    <div class="gauge">
+      <svg viewBox="0 0 200 120" width="100%">
+        <defs><linearGradient id="gg" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#818cf8"/><stop offset="1" stop-color="#5eead4"/></linearGradient></defs>
+        <path d="M20 105 A80 80 0 0 1 180 105" fill="none" stroke="#1f2a40" stroke-width="16" stroke-linecap="round"/>
+        <path id="gArc" d="M180 105 A80 80 0 0 0 20 105" fill="none" stroke="url(#gg)" stroke-width="16" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100"/>
+      </svg>
+      <div class="center"><div class="pct ltr" id="gPct">0%</div><div class="cap">מהתיק הנדרש ל־<bdi class="t">Max Q</bdi></div></div>
+    </div>
+    <div>
+      <div class="grid3">
+        <div class="kpi"><div class="l">תיק נוכחי</div><div class="v ltr" id="mCur">₪0</div></div>
+        <div class="kpi"><div class="l">תיק נדרש ל־<bdi class="t">Max Q</bdi></div><div class="v ltr" id="mReq">₪0</div><div class="h">יעד שנתי ÷ תשואה משוערת</div></div>
+        <div class="kpi"><div class="l">רווח שנתי משוער היום</div><div class="v ltr" id="mProfit">₪0</div><div class="h">תיק × תשואה משוערת</div></div>
+        <div class="kpi"><div class="l">פער</div><div class="v ltr" id="mGap">₪0</div></div>
+        <div class="kpi"><div class="l">זמן משוער ליעד (בסיס)</div><div class="v" id="mYears">—</div><div class="h">עם עודף חודשי ותשואה משוערת</div></div>
+        <div class="kpi"><div class="l">יעד שאפתני: הכפלה כל 3 שנים</div><div class="v" id="mStretch">—</div><div class="h">יעד מתיחה מהמנטור — לא הבטחה</div></div>
+      </div>
+      <div class="note calm" style="margin-top:12px">‏תזכורת: חיים מתחת לאמצעים עד <bdi class="t">Max Q</bdi>. כל שקל שלא יוצא על מותרות הוא דלק לתיק. אין מרוץ — יש כיוון.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="card" id="s3">
+  <h2><span class="num">3</span>אלוקציה 80/20</h2>
+  <p class="sub">‏80% יציבות (חברות מבוססות, מגן) · 20% חזון (צמיחה ודיסרפשן). זהב כגידור — המנטור הזכיר משבצת של 12.5%.</p>
+  <div class="alloc">
+    <svg id="donut" viewBox="0 0 42 42" width="100%" style="max-width:220px;margin:auto;display:block"></svg>
+    <div>
+      <div class="flex"><b>יעד</b><span class="muted" style="font-size:12px">יציבות / חזון</span></div>
+      <div class="bar" style="margin:6px 0 4px"><span id="tb80" style="background:#5eead4"></span><span id="tbG" style="background:#f5c451"></span><span id="tb20" style="background:#818cf8"></span></div>
+      <div class="flex" style="margin-top:14px"><b>בפועל</b><span class="muted" style="font-size:12px" id="actTxt"></span></div>
+      <div class="bar" style="margin:6px 0 4px"><span id="ab80" style="background:#5eead4"></span><span id="abG" style="background:#f5c451"></span><span id="ab20" style="background:#818cf8"></span></div>
+      <div class="legend"><span><i style="background:#5eead4"></i>80 יציבות</span><span><i style="background:#f5c451"></i>זהב <bdi class="t">GLD</bdi> (חלק מה־80)</span><span><i style="background:#818cf8"></i>20 חזון</span></div>
+      <div class="fields" style="margin-top:14px">
+        <label class="f">יעד דלי יציבות (%)<input type="number" data-k="alloc.target80" min="0" max="100" step="1"></label>
+        <label class="f">משבצת זהב כגידור (%)<input type="number" data-k="alloc.gold" min="0" max="100" step="0.5"></label>
+        <label class="f">סטייה מותרת לפני איזון (נק׳ אחוז)<input type="number" data-k="alloc.band" min="0" max="50" step="1"></label>
+      </div>
+      <div class="note" id="allocMsg" style="margin-top:12px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="card" id="s4">
+  <h2><span class="num">4</span>אחזקות</h2>
+  <p class="sub">‏ציון = פוטנציאל 40% + דיסרפשן 30% + (6 פחות סיכון ארוך טווח) 30%. הפעולה המוצעת מחושבת אוטומטית; אפשר לדרוס ידנית.</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>טיקר</th><th>שם</th><th>דלי</th><th>סכום (₪)</th><th>משקל</th>
+        <th>פוטנציאל 1-5</th><th>סיכון <bdi class="t">LT</bdi> 1-5</th><th>דיסרפשן 1-5</th><th>ציון</th><th>פעולה מוצעת</th><th>דריסה</th><th>הערות</th><th></th>
+      </tr></thead>
+      <tbody id="hBody"></tbody>
+      <tfoot><tr><td colspan="3"><b>סה״כ</b></td><td class="ltr" id="hTotal"><b>₪0</b></td><td>100%</td><td colspan="8"></td></tr></tfoot>
+    </table>
+  </div>
+  <div class="flex" style="margin-top:12px">
+    <button class="btn pri" id="btnAddRow">＋ הוסף אחזקה</button>
+    <span class="muted" style="font-size:12px">‏זהב (<bdi class="t">GLD</bdi>) נשאר <bdi class="t">Hold</bdi> כגידור; גודלו נבדק מול משבצת הזהב באלוקציה · <bdi class="t">Double Down</bdi> = ציון גבוה וסיכון סביר · <bdi class="t">Shift</bdi> = ציון חלש · <bdi class="t">Move to 80%</bdi> = נכס חזון ש"סיים תואר" · <bdi class="t">Move to 20%</bdi> = נכס יציבות שהסיכון שלו עלה</span>
+  </div>
+</section>
+
+<!-- 5 + 8 side by side -->
+<div class="grid2">
+<section class="card" id="s5">
+  <div class="rules-sticky">
+  <h2><span class="num">5</span>כללי ברזל</h2>
+  <p class="sub">‏סמן כל שבוע שעמדת בכל כלל. לחיצה על כרטיס מסמנת/מבטלת.</p>
+  <div class="rules" id="rules"></div>
+  <div class="flex" style="margin-top:10px"><span class="muted" style="font-size:12px" id="rulesStat"></span><button class="btn right" id="btnRulesReset">אפס לשבוע חדש</button></div>
+  </div>
+</section>
+
+<section class="card" id="s8">
+  <h2><span class="num">8</span>שלושת האויבים</h2>
+  <p class="sub">‏בדיקה שבועית שקטה: איפה אני עומד מול חמדנות, פאניקה ומינוף. <span id="weekLbl" class="ltr"></span></p>
+  <div class="enemies" id="enemies"></div>
+  <label class="f" style="margin-top:12px">הערה לשבוע<input type="text" id="enemyNote" placeholder="מה הרגשתי, מה עשיתי, מה לא עשיתי"></label>
+  <div class="flex" style="margin-top:10px"><button class="btn pri" id="btnEnemySave">שמור בדיקה שבועית</button><span class="muted" style="font-size:12px">מצב רגוע = החלטות טובות. אין צורך לפעול כל שבוע.</span></div>
+  <h3>היסטוריה</h3>
+  <div class="log" id="enemyLog"></div>
+</section>
+</div>
+
+<!-- 6 -->
+<section class="card" id="s6">
+  <h2><span class="num">6</span>שיפטינג / איזון מחדש</h2>
+  <p class="sub">‏נכס מנופח, גוזרים רווחים, ומחנים אותם בנכס אסטרטגי שנמצא בשפל. בלי למכור את החזון — רק להזיז משקל.</p>
+  <div class="fields">
+    <label class="f">מאיפה (נכס מנופח)<select id="shFrom"></select></label>
+    <label class="f">לאן (נכס אסטרטגי בשפל)<select id="shTo"></select></label>
+    <label class="f">רווח לא ממומש בנכס המקור (₪)<input type="number" id="shGain" min="0" step="100"></label>
+    <label class="f">אחוז מהרווח לגזור (%)<input type="number" id="shPct" min="0" max="100" step="5" value="30"></label>
+  </div>
+  <div class="flex" style="margin-top:12px">
+    <div class="kpi" style="flex:1;min-width:200px"><div class="l">סכום להזזה</div><div class="v ltr" id="shAmt">₪0</div></div>
+    <div class="kpi" style="flex:1;min-width:200px"><div class="l">משקל אחרי ההזזה (מקור / יעד)</div><div class="v ltr" id="shAfter">—</div></div>
+  </div>
+  <label class="f" style="margin-top:12px">סיבה / הערה<input type="text" id="shNote" placeholder="למה הנכס מנופח? למה היעד בשפל?"></label>
+  <div class="flex" style="margin-top:10px">
+    <button class="btn" id="btnShLog">רשום ביומן בלבד</button>
+    <button class="btn pri" id="btnShApply">רשום והחל על טבלת האחזקות</button>
+  </div>
+  <div class="note gold" style="margin-top:14px">‏קציר הפסדים (<bdi class="t">Tax-Loss Harvesting</bdi>) — רעיון חינוכי מהשיעור: מוכרים נכס בהפסד כדי לממש את ההפסד מול רווחים, וקונים שוב/מוסיפים לנכס אסטרטגי. זה לא ייעוץ מס — לפני ביצוע לבדוק עם רואה חשבון את הכללים בישראל ובחשבון הספציפי.</div>
+  <h3>יומן שיפטינג</h3>
+  <div class="log" id="shLog"></div>
+</section>
+
+<!-- 7 -->
+<section class="card" id="s7">
+  <h2><span class="num">7</span>פרנסה מהתיק <span class="pill warn">בהמשך — אחרי <bdi class="t">Max Q</bdi></span></h2>
+  <p class="sub">‏שלוש דרכים להפוך תיק למשכורת. לא לפעול על זה לפני שהתיק בשל. כאן רק מתכננים.</p>
+  <div class="tabs" id="incTabs">
+    <button class="tab on" data-t="swing">משכורת סווינג שנתית</button>
+    <button class="tab" data-t="div">משכורת דיבידנד</button>
+    <button class="tab" data-t="rubber">גומייה סביב אקס־דיבידנד</button>
+  </div>
+  <div class="tabp on" id="tp-swing">
+    <div class="fields">
+      <label class="f">אחוז מהתיק למשיכה בשנה (%)<input type="number" data-k="income.swingPct" min="0" max="100" step="0.5"></label>
+      <label class="f">רף ביצוע: משוך רק אם התשואה השנתית מעל (%)<input type="number" data-k="income.swingMin" min="0" max="100" step="0.5"></label>
+    </div>
+    <div class="grid3" style="margin-top:12px">
+      <div class="kpi"><div class="l">משכורת שנתית</div><div class="v ltr" id="iSwY">₪0</div></div>
+      <div class="kpi"><div class="l">לחודש</div><div class="v ltr" id="iSwM">₪0</div></div>
+      <div class="kpi"><div class="l">כיסוי יעד <bdi class="t">Max Q</bdi></div><div class="v ltr" id="iSwC">0%</div></div>
+    </div>
+    <p class="muted" style="font-size:12.5px">‏גוזרים רווחים פעם בשנה מהנכסים שעלו, ומשאירים את הקרן לעבוד. בשנה חלשה — לא מושכים.</p>
+  </div>
+  <div class="tabp" id="tp-div">
+    <div class="fields">
+      <label class="f">תשואת דיבידנד ממוצעת (%)<input type="number" data-k="income.divYield" min="0" max="30" step="0.1"></label>
+      <label class="f">מס על דיבידנד (%) — לבדוק מול רו״ח<input type="number" data-k="income.divTax" min="0" max="60" step="1"></label>
+    </div>
+    <div class="grid3" style="margin-top:12px">
+      <div class="kpi"><div class="l">דיבידנד שנתי נטו</div><div class="v ltr" id="iDvY">₪0</div></div>
+      <div class="kpi"><div class="l">לחודש</div><div class="v ltr" id="iDvM">₪0</div></div>
+      <div class="kpi"><div class="l">כיסוי יעד <bdi class="t">Max Q</bdi></div><div class="v ltr" id="iDvC">0%</div></div>
+    </div>
+  </div>
+  <div class="tabp" id="tp-rubber">
+    <div class="note caution">‏⚠ מתקדם בלבד. אסטרטגיית "גומייה" סביב תאריך אקס־דיבידנד: קונים לפני, מקבלים דיבידנד, ומחכים שהמחיר יחזור. דורש סבלנות, ניסיון ומשמעת. זהירות כפולה בתעודות סל ממונפות (<bdi class="t">Leveraged ETFs</bdi>) — שחיקה יומית יכולה למחוק את ההיגיון. אין מינוף.</div>
+    <div class="fields" style="margin-top:12px">
+      <label class="f">נכס לבחינה<input type="text" data-k="income.rubberTicker" placeholder="טיקר"></label>
+      <label class="f">תאריך אקס הבא<input type="date" data-k="income.rubberDate"></label>
+      <label class="f">דיבידנד למניה<input type="number" data-k="income.rubberDiv" min="0" step="0.01"></label>
+      <label class="f">מחיר מניה<input type="number" data-k="income.rubberPx" min="0" step="0.01"></label>
+    </div>
+    <div class="grid3" style="margin-top:12px">
+      <div class="kpi"><div class="l">תשואת דיבידנד לאירוע</div><div class="v ltr" id="iRbY">0%</div></div>
+      <div class="kpi"><div class="l">סטטוס</div><div class="v" style="font-size:16px"><span class="pill warn">מתקדם · לא עכשיו</span></div></div>
+      <div class="kpi"><div class="l">מוכנות</div><div class="v" style="font-size:16px" id="iRbReady">—</div></div>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer>‏תיק מנטור · כלי אישי לניהול לפי שיטה. לא ייעוץ השקעות, לא ייעוץ מס. אין להשתמש בכסף מהלוואות להשקעה. הנתונים נשמרים רק בדפדפן הזה — מומלץ לייצא <bdi class="t">JSON</bdi> לגיבוי.</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+const KEY="mentorDashboard.v1";
+const RULES=[
+ {id:"greed",ic:"🧘",t:"בלי חמדנות ובלי פאניקה",d:"לא קונים בהתלהבות, לא מוכרים בפחד. החלטות לפי השיטה."},
+ {id:"lev",ic:"⛔",t:"בלי מינוף, בלי הלוואות",d:"אף שקל מהלוואה לא נכנס לשוק. הלוואת פניקס חסומה ל־HoneyBali."},
+ {id:"naked",ic:"🚫",t:"בלי Naked Calls",d:"לעולם לא כותבים אופציות חשופות."},
+ {id:"covered",ic:"🛡",t:"רק Covered Calls — וכשמתקדמים",d:"רק על מניות שבבעלותי, ורק אחרי ניסיון."},
+ {id:"work",ic:"🛠",t:"העבודה מממנת את התיק",d:"HoneyBali והווילה בהרצליה מייצרים את העודף החודשי."},
+ {id:"goal",ic:"🎯",t:"התיק הוא המטרה",d:"לא הוצאות, לא סטטוס. בונים עד Max Q."}
+];
+const ENEMIES=[{id:"greed",n:"חמדנות",ic:"💰"},{id:"panic",n:"פאניקה",ic:"🌊"},{id:"lev",n:"מינוף",ic:"⛓"}];
+const ACTIONS={Hold:"Hold",Shift:"Shift",DD:"Double Down",M20:"Move to 20%",M80:"Move to 80%"};
+
+function defaults(){return{
+ profile:{capital:0,surplus:0,maxq:0,ret:8,age:"",years:"",
+   family:"נשוי לג׳סיקה · מאור (~2) · גבריאלה (תינוקת)",
+   biz:"HoneyBali — תיירות בבאלי · וילה להשכרה לטווח קצר בהרצליה"},
+ cash:{liquid:0,monthly:0,runway:6,obligations:0,phoenix:50000},
+ alloc:{target80:80,gold:12.5,band:5},
+ holdings:[
+  {tk:"GOOGL",nm:"Google / Alphabet",b:"80",amt:0,p:4,r:2,d:4,ov:"",n:"אמונה ארוכת טווח · מועמד ל־80"},
+  {tk:"INTC",nm:"Intel",b:"80",amt:0,p:3,r:3,d:3,ov:"",n:"אמונה ארוכת טווח · בשפל — מועמד לחניית שיפטינג"},
+  {tk:"TSLA",nm:"Tesla",b:"20",amt:0,p:5,r:4,d:5,ov:"",n:"חזון · ב־20 עד שיסיים תואר"},
+  {tk:"SpaceX",nm:"SpaceX (פרטית)",b:"20",amt:0,p:5,r:4,d:5,ov:"",n:"פרטית/לא סחירה — חשיפה רק דרך ערוץ עקיף; לא נזילה"},
+  {tk:"GLD",nm:"Gold ETF — גידור",b:"80",amt:0,p:2,r:2,d:1,ov:"",n:"גידור · משבצת זהב עד 12.5%"}
+ ],
+ rules:{},
+ enemyNow:{greed:"ok",panic:"ok",lev:"ok"},
+ enemyLog:[],
+ shiftLog:[],
+ income:{swingPct:4,swingMin:8,divYield:2,divTax:25,rubberTicker:"",rubberDate:"",rubberDiv:0,rubberPx:0},
+ savedAt:null
+};}
+
+let S=load();
+function load(){
+  try{const raw=localStorage.getItem(KEY);if(raw){return merge(defaults(),JSON.parse(raw));}}catch(e){}
+  return defaults();
+}
+function merge(base,o){
+  if(Array.isArray(base))return Array.isArray(o)?o:base;
+  if(base&&typeof base==="object"){const r={...base};if(o&&typeof o==="object"){for(const k in o){r[k]=(k in base)?merge(base[k],o[k]):o[k];}}return r;}
+  return o===undefined?base:o;
+}
+let saveT;
+function save(){
+  clearTimeout(saveT);
+  saveT=setTimeout(()=>{S.savedAt=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}showSaved();},250);
+}
+function showSaved(){if(S.savedAt){const d=new Date(S.savedAt);$("#savedAt").textContent="נשמר "+d.toLocaleString("he-IL",{dateStyle:"short",timeStyle:"short"});}}
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const num=v=>{const n=parseFloat(v);return isFinite(n)?n:0};
+const ils=n=>"₪"+Math.round(n).toLocaleString("he-IL");
+const pct=(n,d=0)=>(isFinite(n)?n:0).toFixed(d)+"%";
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function getP(path){return path.split(".").reduce((o,k)=>o?.[k],S)}
+function setP(path,v){const ks=path.split(".");let o=S;ks.slice(0,-1).forEach(k=>o=o[k]);o[ks.at(-1)]=v;}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800);}
+
+/* bound fields */
+function bindFields(){
+  $$("[data-k]").forEach(el=>{
+    const v=getP(el.dataset.k);el.value=(v===undefined||v===null)?"":v;
+    el.oninput=()=>{setP(el.dataset.k,el.type==="number"?(el.value===""?"":num(el.value)):el.value);recalc();save();};
+  });
+}
+
+/* holdings */
+function score(h){return num(h.p)*0.4+num(h.d)*0.3+(6-num(h.r))*0.3}
+function suggest(h){
+  const sc=score(h),p=num(h.p),r=num(h.r);
+  if(isGold(h))return"Hold";
+  if(h.b==="20"&&r<=2&&p>=4)return"M80";
+  if(h.b==="80"&&r>=4)return"M20";
+  if(sc>=4&&r<=3)return"DD";
+  if(sc<=2.4)return"Shift";
+  return"Hold";
+}
+function isGold(h){return /^(GLD|IAU|GOLD|זהב)/i.test(String(h.tk).trim())}
+function total(){return S.holdings.reduce((a,h)=>a+num(h.amt),0)}
+function renderHoldings(){
+  const tb=$("#hBody");tb.innerHTML="";
+  S.holdings.forEach((h,i)=>{
+    const tr=document.createElement("tr");
+    const opt=(v,l,cur)=>`<option value="${v}" ${cur==v?"selected":""}>${l}</option>`;
+    const sopts=[1,2,3,4,5];
+    tr.innerHTML=`
+     <td><input class="tk" data-f="tk" value="${esc(h.tk)}" placeholder="TICKER"></td>
+     <td><input data-f="nm" value="${esc(h.nm)}" style="min-width:140px"></td>
+     <td><select data-f="b" style="width:74px">${opt("80","80",h.b)}${opt("20","20",h.b)}</select></td>
+     <td><input type="number" data-f="amt" value="${h.amt===""?"":num(h.amt)}" min="0" step="100" style="width:110px"></td>
+     <td class="ltr" data-o="w">0%</td>
+     <td><select class="sc" data-f="p">${sopts.map(x=>opt(x,x,h.p)).join("")}</select></td>
+     <td><select class="sc" data-f="r">${sopts.map(x=>opt(x,x,h.r)).join("")}</select></td>
+     <td><select class="sc" data-f="d">${sopts.map(x=>opt(x,x,h.d)).join("")}</select></td>
+     <td><span class="score ltr" data-o="s"></span></td>
+     <td><span class="act" data-o="a"></span></td>
+     <td><select data-f="ov" style="width:120px">${opt("","אוטומטי",h.ov)}${Object.entries(ACTIONS).map(([k,l])=>opt(k,l,h.ov)).join("")}</select></td>
+     <td><input data-f="n" value="${esc(h.n)}" style="min-width:200px"></td>
+     <td><button class="rowdel" title="מחק" data-del="${i}">✕</button></td>`;
+    tr.querySelectorAll("[data-f]").forEach(el=>{
+      const ev=el.tagName==="SELECT"?"change":"input";
+      el.addEventListener(ev,()=>{const f=el.dataset.f;h[f]=(f==="amt")?(el.value===""?"":num(el.value)):(["p","r","d"].includes(f)?num(el.value):el.value);recalc();save();if(f==="tk")fillShiftSelects();});
+    });
+    tr.querySelector("[data-del]").onclick=()=>{if(confirm("למחוק את "+(h.tk||"השורה")+"?")){S.holdings.splice(i,1);renderHoldings();fillShiftSelects();recalc();save();}};
+    tb.appendChild(tr);
+  });
+}
+function updateHoldingOutputs(){
+  const T=total();
+  $$("#hBody tr").forEach((tr,i)=>{
+    const h=S.holdings[i];if(!h)return;
+    const w=T>0?num(h.amt)/T*100:0;
+    tr.querySelector('[data-o="w"]').textContent=pct(w,1);
+    const sc=score(h);const se=tr.querySelector('[data-o="s"]');se.textContent=sc.toFixed(1);
+    se.style.color=sc>=4?"var(--ok)":sc<=2.4?"var(--warn)":"var(--txt)";
+    const a=h.ov||suggest(h);const ae=tr.querySelector('[data-o="a"]');ae.className="act "+a;ae.textContent=ACTIONS[a]+(h.ov?" ✎":"");
+  });
+  $("#hTotal").innerHTML="<b>"+ils(T)+"</b>";
+}
+
+/* recalc */
+function recalc(){
+  const P=S.profile,C=S.cash,A=S.alloc;
+  // cash
+  const runwayNeed=num(C.monthly)*num(C.runway);
+  const investable=num(C.liquid)-runwayNeed-num(C.obligations);
+  $("#kRunway .v").textContent=ils(runwayNeed);
+  const ki=$("#kInvest");ki.querySelector(".v").textContent=ils(Math.max(0,investable));
+  ki.className="kpi "+(investable>0?"good":(num(C.liquid)>0?"badk":""));
+  ki.querySelector(".h").innerHTML=investable<0&&num(C.liquid)>0?"⚠ חסרים "+ils(-investable)+" לכיסוי משפחה והתחייבויות — לא משקיעים עכשיו":"נזיל פחות שמורת משפחה פחות <bdi class='t'>HoneyBali</bdi>";
+  $("#kLocked .v").textContent=ils(num(C.phoenix));
+
+  // portfolio value: holdings total if filled, else profile capital
+  const T=total();const cur=T>0?T:num(P.capital);
+  const r=num(P.ret)/100;const target=num(P.maxq);
+  const req=r>0?target/r:0;
+  const prog=req>0?Math.min(100,cur/req*100):0;
+  const ga=$("#gArc");ga.setAttribute("stroke-dasharray",prog.toFixed(1)+" 100");ga.style.opacity=prog>0?1:0;
+  $("#gPct").textContent=pct(prog);
+  $("#mCur").textContent=ils(cur);$("#mReq").textContent=req?ils(req):"—";
+  $("#mProfit").textContent=ils(cur*r);$("#mGap").textContent=req?ils(Math.max(0,req-cur)):"—";
+  // years to target with monthly contributions
+  const yrs=yearsTo(cur,num(P.surplus)*12,r,req);
+  $("#mYears").textContent=req<=0?"הגדר יעד":(cur>=req?"הושג ✓":(yrs===null?"מעל 60 שנה":yrs.toFixed(1)+" שנים"));
+  const ys=yearsTo(cur,num(P.surplus)*12,Math.pow(2,1/3)-1,req);
+  $("#mStretch").textContent=req<=0?"—":(cur>=req?"הושג ✓":(ys===null?"—":ys.toFixed(1)+" שנים"));
+
+  // allocation
+  const t80=Math.min(100,Math.max(0,num(A.target80)));const g=Math.min(t80,num(A.gold));
+  setBar("tb",t80-g,g,100-t80);
+  let v80=0,v20=0,vG=0;
+  S.holdings.forEach(h=>{const a=num(h.amt);const isG=isGold(h);if(isG){vG+=a;}else if(h.b==="20")v20+=a;else v80+=a;});
+  const tt=v80+v20+vG;
+  const a80=tt?v80/tt*100:0,aG=tt?vG/tt*100:0,a20=tt?v20/tt*100:0;
+  setBar("ab",a80,aG,a20);
+  $("#actTxt").textContent=tt?`יציבות ${pct(a80+aG)} (זהב ${pct(aG,1)}) · חזון ${pct(a20)}`:"אין עדיין סכומים";
+  drawDonut(tt?[a80,aG,a20]:[t80-g,g,100-t80],!tt);
+  const band=num(A.band),dev=(a80+aG)-t80;const m=$("#allocMsg");
+  if(!tt){m.innerHTML="‏מלא סכומים בטבלת האחזקות כדי לראות אלוקציה בפועל. הדונאט מציג כרגע את היעד.";m.className="note";}
+  else if(Math.abs(dev)<=band&&aG<=g+band){m.innerHTML="‏✓ האלוקציה בטווח. אין צורך לפעול.";m.className="note calm";}
+  else{
+    const parts=[];
+    if(dev>band)parts.push(`דלי היציבות גבוה ב־${pct(dev,1)} מהיעד — לשקול חיזוק החזון (נכס ש"בשל" לא נוגעים, מזיזים עודף).`);
+    if(dev<-band)parts.push(`דלי החזון גבוה ב־${pct(-dev,1)} מהיעד — לגזור רווחים מה־20 ולהעביר ל־80 (ראה שיפטינג).`);
+    if(aG>g+band)parts.push(`הזהב (${pct(aG,1)}) מעל משבצת הגידור (${pct(g,1)}).`);
+    m.innerHTML="‏⚖ "+parts.join(" ");m.className="note caution";
+  }
+
+  updateHoldingOutputs();
+  updateShift();
+  // income
+  const I=S.income;
+  const swY=cur*num(I.swingPct)/100;$("#iSwY").textContent=ils(swY);$("#iSwM").textContent=ils(swY/12);$("#iSwC").textContent=target?pct(swY/target*100):"—";
+  const dvY=cur*num(I.divYield)/100*(1-num(I.divTax)/100);$("#iDvY").textContent=ils(dvY);$("#iDvM").textContent=ils(dvY/12);$("#iDvC").textContent=target?pct(dvY/target*100):"—";
+  const px=num(I.rubberPx);$("#iRbY").textContent=px?pct(num(I.rubberDiv)/px*100,2):"0%";
+  $("#iRbReady").innerHTML=prog>=100?'<span class="pill ok">אחרי Max Q</span>':'<span class="pill bad">עוד לא — בונים תיק</span>';
+}
+function yearsTo(pv,annualAdd,r,target){
+  if(target<=0)return null;if(pv>=target)return 0;
+  let v=pv;for(let m=1;m<=720;m++){v=v*(1+r/12)+annualAdd/12;if(v>=target)return m/12;}return null;
+}
+function setBar(p,a,g,b){$("#"+p+"80").style.width=a+"%";$("#"+p+"G").style.width=g+"%";$("#"+p+"20").style.width=b+"%";}
+function drawDonut(vals,isTarget){
+  const cols=["#5eead4","#f5c451","#818cf8"];const sv=$("#donut");let off=25,h="";
+  h+=`<circle cx="21" cy="21" r="15.9" fill="none" stroke="#1f2a40" stroke-width="6"/>`;
+  vals.forEach((v,i)=>{if(v<=0)return;h+=`<circle cx="21" cy="21" r="15.9" fill="none" stroke="${cols[i]}" stroke-width="6" stroke-dasharray="${v} ${100-v}" stroke-dashoffset="${off}" transform="scale(-1,1) translate(-42,0)"/>`;off-=v;});
+  const s=vals[0]+vals[1];
+  h+=`<text x="21" y="20" text-anchor="middle" fill="#e7ecf5" font-size="6" font-weight="800" font-family="Heebo,sans-serif">${Math.round(s)}/${Math.round(vals[2])}</text>`;
+  h+=`<text x="21" y="26" text-anchor="middle" fill="#8f9bb3" font-size="2.6" font-family="Heebo,sans-serif">${isTarget?"יעד":"בפועל"}</text>`;
+  sv.innerHTML=h;
+}
+
+/* rules */
+function renderRules(){
+  const box=$("#rules");box.innerHTML="";
+  RULES.forEach(r=>{
+    const d=document.createElement("div");d.className="rule"+(S.rules[r.id]?" on":"");
+    d.innerHTML=`<span class="chk">${S.rules[r.id]?"✓":""}</span><div class="ic">${r.ic}</div><b>${ltrWrap(r.t)}</b><p>${ltrWrap(r.d)}</p>`;
+    d.onclick=()=>{S.rules[r.id]=!S.rules[r.id];renderRules();save();};
+    box.appendChild(d);
+  });
+  const n=RULES.filter(r=>S.rules[r.id]).length;
+  $("#rulesStat").textContent=`השבוע: ${n} מתוך ${RULES.length} כללים מסומנים`;
+}
+function ltrWrap(s){return esc(s).replace(/([A-Za-z][A-Za-z0-9 .\/%\-]*[A-Za-z0-9%])/g,'<bdi class="t">$1</bdi>')}
+
+/* enemies */
+function isoWeek(d=new Date()){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return t.getUTCFullYear()+"-W"+String(Math.ceil(((t-y)/864e5+1)/7)).padStart(2,"0");}
+const ST={ok:"שקט",warn:"מרגיש",bad:"פעיל"};
+function renderEnemies(){
+  $("#weekLbl").textContent="· "+isoWeek();
+  const box=$("#enemies");box.innerHTML="";
+  ENEMIES.forEach(e=>{
+    const d=document.createElement("div");d.className="enemy";
+    const cur=S.enemyNow[e.id]||"ok";
+    d.innerHTML=`<div style="font-size:22px">${e.ic}</div><div class="nm">${e.n}</div><div class="st">${Object.entries(ST).map(([k,l])=>`<button class="btn ${cur===k?"sel "+k:""}" data-s="${k}">${l}</button>`).join("")}</div>`;
+    d.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{S.enemyNow[e.id]=b.dataset.s;renderEnemies();save();});
+    box.appendChild(d);
+  });
+  const lg=$("#enemyLog");
+  lg.innerHTML=S.enemyLog.length?S.enemyLog.slice().reverse().map(x=>`<div><span class="ltr">${esc(x.w)}</span><span>${ENEMIES.map(e=>`${e.n}: <span class="pill ${x[e.id]}">${ST[x[e.id]]||"—"}</span>`).join(" ")}</span>${x.note?`<span style="width:100%">${esc(x.note)}</span>`:""}</div>`).join(""):'<div>עוד אין בדיקות שמורות.</div>';
+}
+
+/* shift */
+function fillShiftSelects(){
+  ["#shFrom","#shTo"].forEach((s,j)=>{const el=$(s);const prev=el.value;
+    el.innerHTML=S.holdings.map((h,i)=>`<option value="${i}">${esc(h.tk||"?")} — ${esc(h.nm||"")}</option>`).join("");
+    if(prev!==""&&prev<S.holdings.length)el.value=prev;else if(j===1&&S.holdings.length>1)el.value=S.holdings.findIndex(h=>h.tk==="INTC")>=0?S.holdings.findIndex(h=>h.tk==="INTC"):1;
+  });
+}
+function shiftAmt(){return num($("#shGain").value)*num($("#shPct").value)/100}
+function updateShift(){
+  const amt=shiftAmt();$("#shAmt").textContent=ils(amt);
+  const f=S.holdings[+$("#shFrom").value],t=S.holdings[+$("#shTo").value],T=total();
+  if(f&&t&&T>0&&f!==t){$("#shAfter").textContent=pct((num(f.amt)-amt)/T*100,1)+" / "+pct((num(t.amt)+amt)/T*100,1);}else $("#shAfter").textContent="—";
+}
+function logShift(apply){
+  const f=S.holdings[+$("#shFrom").value],t=S.holdings[+$("#shTo").value],amt=shiftAmt();
+  if(!f||!t||f===t){toast("בחר נכס מקור ונכס יעד שונים");return;}
+  if(amt<=0){toast("הזן רווח ואחוז לגזירה");return;}
+  if(apply){if(num(f.amt)<amt){toast("הסכום גדול מהאחזקה במקור");return;}f.amt=num(f.amt)-amt;t.amt=num(t.amt)+amt;renderHoldings();}
+  S.shiftLog.push({d:new Date().toLocaleDateString("he-IL"),from:f.tk,to:t.tk,amt,applied:!!apply,note:$("#shNote").value});
+  $("#shNote").value="";renderShiftLog();recalc();save();toast(apply?"השיפט נרשם והוחל":"השיפט נרשם ביומן");
+}
+function renderShiftLog(){
+  const lg=$("#shLog");
+  lg.innerHTML=S.shiftLog.length?S.shiftLog.slice().reverse().map(x=>`<div><span>${esc(x.d)}</span><span><bdi class="t">${esc(x.from)}</bdi> ← <bdi class="t">${esc(x.to)}</bdi> · <span class="ltr">${ils(x.amt)}</span></span><span class="pill ${x.applied?"ok":""}">${x.applied?"הוחל":"יומן"}</span>${x.note?`<span style="width:100%">${esc(x.note)}</span>`:""}</div>`).join(""):'<div>עוד אין שיפטים.</div>';
+}
+
+/* tabs */
+$$("#incTabs .tab").forEach(b=>b.onclick=()=>{$$("#incTabs .tab").forEach(x=>x.classList.toggle("on",x===b));$$(".tabp").forEach(p=>p.classList.toggle("on",p.id==="tp-"+b.dataset.t));});
+
+/* buttons */
+$("#btnAddRow").onclick=()=>{S.holdings.push({tk:"",nm:"",b:"80",amt:0,p:3,r:3,d:3,ov:"",n:""});renderHoldings();fillShiftSelects();recalc();save();};
+$("#btnRulesReset").onclick=()=>{S.rules={};renderRules();save();};
+$("#btnEnemySave").onclick=()=>{const w=isoWeek();S.enemyLog=S.enemyLog.filter(x=>x.w!==w);S.enemyLog.push({w,...S.enemyNow,note:$("#enemyNote").value});$("#enemyNote").value="";renderEnemies();save();toast("הבדיקה השבועית נשמרה");};
+$("#btnShLog").onclick=()=>logShift(false);$("#btnShApply").onclick=()=>logShift(true);
+["#shGain","#shPct"].forEach(s=>$(s).oninput=updateShift);["#shFrom","#shTo"].forEach(s=>$(s).onchange=updateShift);
+$("#btnExport").onclick=()=>{const blob=new Blob([JSON.stringify(S,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mentor-portfolio-"+new Date().toISOString().slice(0,10)+".json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("הקובץ יוצא");};
+$("#btnImport").onclick=()=>$("#fileImport").click();
+$("#fileImport").onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{S=merge(defaults(),JSON.parse(rd.result));init();save();toast("הנתונים יובאו");}catch(err){alert("קובץ JSON לא תקין");}};rd.readAsText(f);e.target.value="";};
+$("#btnReset").onclick=()=>{if(confirm("לאפס את כל הנתונים לברירת המחדל? מומלץ לייצא קודם.")){localStorage.removeItem(KEY);S=defaults();init();toast("אופס");}};
+
+function init(){bindFields();renderHoldings();fillShiftSelects();renderRules();renderEnemies();renderShiftLog();recalc();showSaved();}
+init();
+})();
+</script>
+</body>
+</html>
