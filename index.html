@@ -136,9 +136,55 @@ footer{max-width:1240px;margin:auto;padding:0 18px 40px;color:var(--mut);font-si
   main{padding:0}
   table{min-width:0}
 }
+
+/* password gate */
+html.locked body>*:not(#gate){display:none!important}
+html:not(.locked) #gate{display:none!important}
+#gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;z-index:100}
+#gate .gbox{width:100%;max-width:360px;background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:var(--r);padding:30px 26px;box-shadow:0 20px 60px rgba(0,0,0,.45);text-align:center}
+#gate .glock{font-size:30px;margin-bottom:6px}
+#gate h1{margin:0 0 4px;font-size:24px;font-weight:800;background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+#gate p{margin:0 0 18px;color:var(--mut);font-size:13px}
+#gate input{width:100%;box-sizing:border-box;background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit;font-size:20px;letter-spacing:6px;text-align:center;outline:none;direction:ltr}
+#gate input:focus{border-color:var(--acc)}
+#gate button{width:100%;margin-top:12px;padding:11px;border-radius:12px;border:0;font:inherit;font-size:16px;font-weight:700;cursor:pointer;color:#0b0f17;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+#gate button:disabled{opacity:.6;cursor:wait}
+#gate .gerr{min-height:20px;margin-top:10px;color:#f87171;font-size:13px}
+@media print{#gate{display:none!important}}
 </style>
+<script>
+/* gate: hidden until unlocked */
+window.MENTOR_GATE={salt:"e4013d6e83357a602fd6b25889db7829",iter:300000,hash:"f5e1560dbf499142cd81b616931ef26d78eb591a44ff57d147b29540639d2b42",key:"mentor_gate"};
+(function(){var ok=false;try{ok=localStorage.getItem(MENTOR_GATE.key)===MENTOR_GATE.hash;}catch(e){}if(!ok)document.documentElement.classList.add("locked");})();
+</script>
 </head>
 <body>
+<div id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+  <form class="gbox" id="gateForm" autocomplete="off">
+    <div class="glock">🔒</div>
+    <h1 id="gateTitle">תיק מנטור</h1>
+    <p>הזן סיסמה כדי להיכנס</p>
+    <input id="gatePw" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" aria-label="סיסמה" required>
+    <button type="submit" id="gateBtn">כניסה</button>
+    <div class="gerr" id="gateErr" role="alert"></div>
+  </form>
+</div>
+<script>
+(function(){
+  var G=window.MENTOR_GATE,f=document.getElementById("gateForm"),pw=document.getElementById("gatePw"),err=document.getElementById("gateErr"),btn=document.getElementById("gateBtn");
+  function hexToBytes(x){var a=new Uint8Array(x.length/2);for(var i=0;i<a.length;i++)a[i]=parseInt(x.substr(i*2,2),16);return a;}
+  function toHex(b){return Array.prototype.map.call(new Uint8Array(b),function(v){return v.toString(16).padStart(2,"0");}).join("");}
+  async function derive(p){var k=await crypto.subtle.importKey("raw",new TextEncoder().encode(p),"PBKDF2",false,["deriveBits"]);return toHex(await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:hexToBytes(G.salt),iterations:G.iter},k,256));}
+  if(document.documentElement.classList.contains("locked"))setTimeout(function(){pw.focus();},50);
+  f.addEventListener("submit",async function(e){
+    e.preventDefault();var v=pw.value;if(!v)return;btn.disabled=true;err.textContent="";
+    var h="";try{if(!window.crypto||!crypto.subtle)throw new Error("no webcrypto");h=await derive(v);}catch(x){err.textContent="הדפדפן לא תומך באימות (נדרש HTTPS)";btn.disabled=false;return;}
+    btn.disabled=false;
+    if(h===G.hash){try{localStorage.setItem(G.key,h);}catch(x){}pw.value="";document.documentElement.classList.remove("locked");window.scrollTo(0,0);}
+    else{err.textContent="סיסמה שגויה";pw.value="";pw.focus();}
+  });
+})();
+</script>
 <header class="top">
   <div class="top-in">
     <div class="brand">תיק מנטור — 80/20 · Max Q<small>יוחאי סיטבון · ניהול לפי שיטת המנטור · נשמר מקומית בדפדפן</small></div>
@@ -149,6 +195,7 @@ footer{max-width:1240px;margin:auto;padding:0 18px 40px;color:var(--mut);font-si
       <input type="file" id="fileImport" accept="application/json,.json" hidden>
       <button class="btn" onclick="window.print()">🖨 הדפסה</button>
       <button class="btn ghost danger" id="btnReset">איפוס</button>
+      <button class="btn ghost" id="btnLock" onclick="try{localStorage.removeItem('mentor_gate')}catch(e){}location.reload()" title="נעילת הדשבורד במכשיר הזה">🔒 נעילה</button>
     </div>
   </div>
   <nav class="sec">
